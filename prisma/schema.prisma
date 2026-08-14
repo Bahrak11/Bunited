@@ -1,0 +1,399 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ADMIN
+  STAFF
+}
+
+enum UniversityType {
+  PUBLIC
+  PRIVATE
+}
+
+enum DegreeLevel {
+  BACHELOR
+  MASTER
+  PHD
+}
+
+enum ApplicationStatus {
+  DRAFT
+  DOCUMENTS_REQUIRED
+  UNDER_REVIEW
+  SUBMITTED_TO_UNIVERSITY
+  CONDITIONAL_ADMISSION
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REPLACEMENT_REQUESTED
+}
+
+enum DocumentType {
+  PASSPORT
+  DIPLOMA
+  TRANSCRIPT
+  PASSPORT_PHOTO
+  LANGUAGE_CERTIFICATE
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  APPLICATION_UPDATE
+  DOCUMENT_UPDATE
+  MESSAGE
+  PAYMENT
+  SYSTEM
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          UserRole  @default(STUDENT)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  student       Student?
+  adminUser     AdminUser?
+  staff         Staff?
+  auditLogs     AuditLog[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model AdminUser {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName           String
+  lastName            String
+  mustChangePassword  Boolean   @default(true)
+  lastLoginAt         DateTime?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  assignedApplications Application[] @relation("AssignedStaff")
+  applicationNotes     ApplicationNote[]
+  sentMessages         Message[]       @relation("AdminMessages")
+  sentNotifications    Notification[]  @relation("AdminNotifications")
+
+  @@map("admin_users")
+}
+
+model Staff {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  department String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("staff")
+}
+
+model Student {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName   String
+  lastName    String
+  phone       String?
+  nationality String?
+  dateOfBirth DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applications  Application[]
+  payments      Payment[]
+  notifications Notification[]
+  messages      Message[]
+
+  @@index([firstName, lastName])
+  @@map("students")
+}
+
+model University {
+  id                    String         @id @default(cuid())
+  slug                  String         @unique
+  name                  String
+  city                  String
+  type                  UniversityType
+  description           String        
+  logoUrl               String?
+  coverImageUrl         String?
+  ranking               Int?
+  website               String?
+  accommodationInfo     String?       
+  scholarshipInfo       String?       
+  admissionRequirements String?       
+  applicationDeadline   DateTime?
+  hasScholarship        Boolean        @default(false)
+  isActive              Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  faculties    Faculty[]
+  programs     Program[]
+  applications Application[]
+
+  @@index([city])
+  @@index([type])
+  @@index([name])
+  @@map("universities")
+}
+
+model Faculty {
+  id           String     @id @default(cuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?   
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  programs Program[]
+
+  @@index([universityId])
+  @@map("faculties")
+}
+
+model Program {
+  id              String      @id @default(cuid())
+  slug            String      @unique
+  name            String
+  field           String
+  degreeLevel     DegreeLevel
+  language        String
+  tuitionFee      Float
+  currency        String      @default("USD")
+  duration        String?
+  description     String?    
+  requirements    String?    
+  hasScholarship  Boolean     @default(false)
+  isActive        Boolean     @default(true)
+  universityId    String
+  university      University  @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  facultyId       String?
+  faculty         Faculty?    @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  applications Application[]
+
+  @@index([universityId])
+  @@index([degreeLevel])
+  @@index([field])
+  @@index([language])
+  @@index([tuitionFee])
+  @@map("programs")
+}
+
+model Scholarship {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  name         String
+  description  String   
+  eligibility  String   
+  benefits     String   
+  requirements String   
+  instructions String   
+  deadline     DateTime?
+  isActive     Boolean   @default(true)
+  universityId String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("scholarships")
+}
+
+model Application {
+  id                 String            @id @default(cuid())
+  applicationNumber  String            @unique
+  status             ApplicationStatus @default(DRAFT)
+  degreeLevel        DegreeLevel?
+  preferredCity      String?
+  academicInfo       Json?
+  progressStep       Int               @default(1)
+  submittedAt        DateTime?
+  studentId          String
+  student            Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  universityId       String?
+  university         University?       @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  programId          String?
+  program            Program?          @relation(fields: [programId], references: [id], onDelete: SetNull)
+  assignedStaffId    String?
+  assignedStaff      AdminUser?        @relation("AssignedStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  documents     ApplicationDocument[]
+  payments      Payment[]
+  notes         ApplicationNote[]
+  messages      Message[]
+  notifications Notification[]
+
+  @@index([status])
+  @@index([studentId])
+  @@index([applicationNumber])
+  @@map("applications")
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  createdAt    DateTime @default(now())
+
+  applicationDocuments ApplicationDocument[]
+
+  @@map("documents")
+}
+
+model ApplicationDocument {
+  id            String         @id @default(cuid())
+  applicationId String
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentId    String
+  document      Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  type          DocumentType
+  status        DocumentStatus @default(PENDING)
+  reviewNote    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([applicationId])
+  @@index([status])
+  @@map("application_documents")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  transactionId String?       @unique
+  amount        Float
+  currency      String        @default("USD")
+  status        PaymentStatus @default(PENDING)
+  description   String?
+  gateway       String?
+  gatewayData   Json?
+  paidAt        DateTime?
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  applicationId String?
+  application   Application?  @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Notification {
+  id            String           @id @default(cuid())
+  title         String
+  message       String          
+  type          NotificationType @default(SYSTEM)
+  isRead        Boolean          @default(false)
+  studentId     String?
+  student       Student?         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  applicationId String?
+  application   Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  adminId       String?
+  admin         AdminUser?       @relation("AdminNotifications", fields: [adminId], references: [id], onDelete: SetNull)
+  createdAt     DateTime         @default(now())
+
+  @@index([studentId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model Message {
+  id            String       @id @default(cuid())
+  content       String      
+  isFromAdmin   Boolean      @default(false)
+  studentId     String
+  student       Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  adminId       String?
+  admin         AdminUser?   @relation("AdminMessages", fields: [adminId], references: [id], onDelete: SetNull)
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+
+  @@index([studentId])
+  @@index([applicationId])
+  @@map("messages")
+}
+
+model ApplicationNote {
+  id            String      @id @default(cuid())
+  content       String     
+  isInternal    Boolean     @default(true)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  adminId       String
+  admin         AdminUser   @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@index([applicationId])
+  @@map("application_notes")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@map("password_reset_tokens")
+}

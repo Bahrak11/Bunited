@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bunited-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bunited
+      POSTGRES_PASSWORD: bunited_secret
+      POSTGRES_DB: bunited
+    ports:
+      - "5432:5432"
+    volumes:
+      - bunited_pgdata:/var/lib/postgresql/data
+
+volumes:
+  bunited_pgdata:
