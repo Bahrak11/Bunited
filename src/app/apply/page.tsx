@@ -1,8 +1,7 @@
-import { Suspense } from "react";
+"use client";
 
-function ApplyFormContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
@@ -12,7 +11,7 @@ import Badge from "@/components/ui/Badge";
 import { CheckCircle2, Upload, ArrowRight, ArrowLeft, FileText, Sparkles, Building2 } from "lucide-react";
 import { TURKISH_CITIES } from "@/lib/constants";
 
-export default function ApplyPage() {
+function ApplyFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

@@ -10,8 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/programs`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 },
     { url: `${baseUrl}/scholarships`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8 },
     { url: `${baseUrl}/apply`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.9 },
-    { url: `${baseUrl}/login`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.5 },
-    { url: `${baseUrl}/register`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.5 },
+    { url: `${baseUrl}/portal/login`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.5 },
+    { url: `${baseUrl}/portal/register`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.5 },
   ];
 
   try {

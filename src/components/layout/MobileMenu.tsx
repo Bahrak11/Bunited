@@ -26,8 +26,8 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
           </Link>
         ))}
         <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-gray-100">
-          <Link href="/login" onClick={onClose}>
-            <Button variant="secondary" className="w-full">Login</Button>
+          <Link href="/portal/login" onClick={onClose}>
+            <Button variant="secondary" className="w-full">Student Portal Login</Button>
           </Link>
           <Link href="/apply" onClick={onClose}>
             <Button className="w-full">Apply Now</Button>

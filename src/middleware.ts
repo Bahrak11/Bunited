@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken, COOKIE_NAMES } from "@/lib/auth";
+import { verifyTokenEdge, COOKIE_NAMES } from "@/lib/auth-edge";
 
 const ADMIN_PATHS = ["/admin"];
 const ADMIN_PUBLIC_PATHS = ["/admin/login"];
@@ -35,7 +35,7 @@ export function middleware(request: NextRequest) {
     if (!token) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
-    const payload = verifyToken(token);
+    const payload = verifyTokenEdge(token);
     if (!payload || (payload.role !== "ADMIN" && payload.role !== "STAFF")) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
@@ -51,7 +51,7 @@ export function middleware(request: NextRequest) {
     if (!token) {
       return NextResponse.redirect(new URL("/portal/login", request.url));
     }
-    const payload = verifyToken(token);
+    const payload = verifyTokenEdge(token);
     if (!payload || payload.role !== "STUDENT") {
       return NextResponse.redirect(new URL("/portal/login", request.url));
     }
@@ -61,7 +61,7 @@ export function middleware(request: NextRequest) {
   const isPortalAuthPath = PORTAL_PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   if (isPortalAuthPath) {
     const token = request.cookies.get(COOKIE_NAMES.student)?.value;
-    if (token && verifyToken(token)) {
+    if (token && verifyTokenEdge(token)) {
       return NextResponse.redirect(new URL("/portal", request.url));
     }
   }

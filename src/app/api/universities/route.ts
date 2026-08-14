@@ -4,6 +4,8 @@ import { apiError, apiSuccess } from "@/lib/api-response";
 import { getSessionFromRequest } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

@@ -4,15 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && npx next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "db:generate": "npx prisma generate",
-    "db:push": "npx prisma db push",
-    "db:migrate": "npx prisma migrate dev",
-    "db:seed": "npx tsx prisma/seed.ts",
-    "db:studio": "npx prisma studio",
-    "postinstall": "npx prisma generate"
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

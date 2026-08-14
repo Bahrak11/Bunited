@@ -44,10 +44,10 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">For Students</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/portal/dashboard" className="hover:text-white">Student Portal</Link></li>
+              <li><Link href="/portal" className="hover:text-white">Student Portal</Link></li>
               <li><Link href="/apply" className="hover:text-white">Apply Now</Link></li>
               <li><Link href="/scholarships" className="hover:text-white">Scholarships</Link></li>
-              <li><Link href="/register" className="hover:text-white">Create Account</Link></li>
+              <li><Link href="/portal/register" className="hover:text-white">Create Account</Link></li>
             </ul>
           </div>
 
